@@ -1,0 +1,23 @@
+name: Sync to GitCode
+
+on:
+  push:
+    branches:
+      - main 
+
+jobs:
+  git_mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Mirror to GitCode
+        uses: wearerequired/git-mirror-action@v2
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.GITCODE_PRIVATE_KEY }}
+        with:
+          source-repo: "git@github.com:AsyncBean-DataDriven/2026Season.git"
+          destination-repo: "git@gitcode.com:asyncbean/AsyncBean-DataDriven.git"
