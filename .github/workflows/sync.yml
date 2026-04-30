@@ -6,7 +6,7 @@ on:
       - main 
 
 jobs:
-  git_mirror:
+  sync_to_gitcode:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -14,10 +14,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Mirror to GitCode
-        uses: wearerequired/git-mirror-action@master
+      - name: Set up SSH and Keys
         env:
           SSH_PRIVATE_KEY: ${{ secrets.GITCODE_PRIVATE_KEY }}
-        with:
-          source-repo: "git@github.com:AsyncBean-DataDriven/2026Season.git"
-          destination-repo: "git@gitcode.com:asyncbean/AsyncBean-DataDriven.git"
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan gitcode.com >> ~/.ssh/known_hosts
+
+      - name: Push to GitCode
+        run: |
+          git remote add gitcode git@gitcode.com:asyncbean/AsyncBean-DataDriven.git
+          git push --force --prune gitcode +refs/heads/*:refs/heads/* +refs/tags/*:refs/tags/*
