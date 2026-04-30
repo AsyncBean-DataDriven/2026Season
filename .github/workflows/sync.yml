@@ -3,7 +3,7 @@ name: Sync to GitCode
 on:
   push:
     branches:
-      - main 
+      - main
 
 jobs:
   sync_to_gitcode:
@@ -19,11 +19,24 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.GITCODE_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
+          # 写入私钥
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
+          
+          # 配置 SSH 选项
+          cat << 'EOF' > ~/.ssh/config
+          Host gitcode.com
+            IdentityFile ~/.ssh/id_ed25519
+            StrictHostKeyChecking no
+          EOF
+          chmod 600 ~/.ssh/config
+          
           ssh-keyscan gitcode.com >> ~/.ssh/known_hosts
 
       - name: Push to GitCode
         run: |
+          git remote remove gitcode || true
+       
           git remote add gitcode git@gitcode.com:asyncbean/AsyncBean-DataDriven.git
+          
           git push --force --prune gitcode +refs/heads/*:refs/heads/* +refs/tags/*:refs/tags/*
